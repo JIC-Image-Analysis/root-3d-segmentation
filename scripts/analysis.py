@@ -4,9 +4,11 @@ import os
 import logging
 import argparse
 
-from jicbioimage.core.image import Image
+from jicbioimage.core.image import Image, Image3D
 from jicbioimage.core.transform import transformation
 from jicbioimage.core.io import AutoName, AutoWrite, DataManager, FileBackend
+
+import SimpleITK as sitk
 
 __version__ = "0.0.1"
 
@@ -23,9 +25,43 @@ def get_data_manager(output_directory):
 
 
 @transformation
-def identity(image):
-    """Return the image as is."""
-    return image
+def identity(im3d):
+    return im3d
+
+
+@transformation
+def filter_median(im3d):
+    itk_im = sitk.GetImageFromArray(im3d)
+    median_filter = sitk.MedianImageFilter()
+    itk_im = median_filter.Execute(itk_im)
+    return Image3D.from_array(sitk.GetArrayFromImage(itk_im),
+                              log_in_history=False)
+
+
+@transformation
+def gradient_magnitude(im3d):
+    itk_im = sitk.GetImageFromArray(im3d)
+    itk_im = sitk.GradientMagnitude(itk_im)
+    return Image3D.from_array(sitk.GetArrayFromImage(itk_im),
+                              log_in_history=False)
+
+
+@transformation
+def discrete_gaussian_filter(im3d, variance):
+    itk_im = sitk.GetImageFromArray(im3d)
+    gaussian_filter = sitk.DiscreteGaussianImageFilter()
+    gaussian_filter.SetVariance(2.0)
+    itk_im = gaussian_filter.Execute(itk_im)
+    return Image3D.from_array(sitk.GetArrayFromImage(itk_im),
+                              log_in_history=False)
+
+
+@transformation
+def morphological_watershed(im3d, level):
+    itk_im = sitk.GetImageFromArray(im3d)
+    itk_im = sitk.MorphologicalWatershed(itk_im, level=level)
+    return Image3D.from_array(sitk.GetArrayFromImage(itk_im),
+                              log_in_history=False)
 
 
 def analyse_file(fpath, output_directory):
@@ -36,6 +72,10 @@ def analyse_file(fpath, output_directory):
 
     stack = microscopy_collection.zstack(c=1)
     stack = identity(stack)
+    stack = filter_median(stack)
+    stack = gradient_magnitude(stack)
+    stack = discrete_gaussian_filter(stack, 2.0)
+    stack = morphological_watershed(stack, 250)
 
 
 def analyse_directory(input_directory, output_directory):
