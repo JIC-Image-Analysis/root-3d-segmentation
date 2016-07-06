@@ -6,6 +6,8 @@ import argparse
 from jicbioimage.core.image import Image3D, _sorted_listdir
 from pyvol.renderer import BaseGlutWindow, VolumeRenderer
 
+import OpenGL.GLUT
+
 
 class StackVisualiser(BaseGlutWindow):
 
@@ -16,6 +18,7 @@ class StackVisualiser(BaseGlutWindow):
 
         self.current = 0
         stack = self.get_stack()
+        OpenGL.GLUT.glutSetWindowTitle(self.get_title())
 
         self.renderer = VolumeRenderer()
         self.renderer.make_volume_obj(stack, (1, 1, 1))
@@ -23,6 +26,8 @@ class StackVisualiser(BaseGlutWindow):
     def get_stack(self):
         return Image3D.from_directory(self.directories[self.current])
 
+    def get_title(self):
+        return os.path.basename(self.directories[self.current])
 
     def draw_hook(self):
         self.renderer.render(self.width, self.height, self.VMatrix, self.PMatrix)
@@ -36,6 +41,8 @@ class StackVisualiser(BaseGlutWindow):
             self.current = 0
         stack = self.get_stack()
         self.renderer.volume_objects[0].update_stack(stack)
+        OpenGL.GLUT.glutSetWindowTitle(self.get_title())
+
 
     def prev_stack(self, x, y):
         self.current -= 1
@@ -43,6 +50,8 @@ class StackVisualiser(BaseGlutWindow):
             self.current = len(self.directories) - 1
         stack = self.get_stack()
         self.renderer.volume_objects[0].update_stack(stack)
+        OpenGL.GLUT.glutSetWindowTitle(self.get_title())
+
 
 def visualise(directory):
     stack_visualiser = StackVisualiser("Root visualiser", 1000, 600)
