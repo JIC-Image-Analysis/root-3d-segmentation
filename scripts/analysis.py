@@ -6,11 +6,20 @@ import argparse
 
 from jicbioimage.core.image import Image
 from jicbioimage.core.transform import transformation
-from jicbioimage.core.io import AutoName, AutoWrite
+from jicbioimage.core.io import AutoName, AutoWrite, DataManager, FileBackend
 
 __version__ = "0.0.1"
 
 AutoName.prefix_format = "{:03d}_"
+
+
+def get_data_manager(output_directory):
+    """Return FileBackend instance."""
+    backend_dir = os.path.join(output_directory, '.backend')
+    if not os.path.isdir(backend_dir):
+        os.mkdir(backend_dir)
+    backend = FileBackend(backend_dir)
+    return DataManager(backend)
 
 
 @transformation
@@ -22,8 +31,11 @@ def identity(image):
 def analyse_file(fpath, output_directory):
     """Analyse a single file."""
     logging.info("Analysing file: {}".format(fpath))
-    image = Image.from_file(fpath)
-    image = identity(image)
+    data_manager = get_data_manager(output_directory)
+    microscopy_collection = data_manager.load(fpath)
+
+    stack = microscopy_collection.zstack(c=1)
+    stack = identity(stack)
 
 
 def analyse_directory(input_directory, output_directory):
