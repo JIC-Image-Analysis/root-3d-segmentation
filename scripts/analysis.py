@@ -64,21 +64,39 @@ def morphological_watershed(im3d, level):
                               log_in_history=False)
 
 
+def segment(stack):
+    """Segment the stack into 3D regions representing cells."""
+    stack = identity(stack)
+    stack = filter_median(stack)
+    stack = gradient_magnitude(stack)
+    stack = discrete_gaussian_filter(stack, 2.0)
+    stack = morphological_watershed(stack, 250)
+    return stack
+
+
+def analyse_series(microscopy_collection, series, output_directory):
+    logging.info("Analysing series: {}".format(series))
+    stack = microscopy_collection.zstack(s=series, c=1)
+    stack = segment(stack)
+    output_directory = output_directory + "series{}-segmented.stack".format(series)
+    stack.to_directory(output_directory)
+
+
 def analyse_file(fpath, output_directory):
     """Analyse a single file."""
     logging.info("Analysing file: {}".format(fpath))
     data_manager = get_data_manager(output_directory)
     microscopy_collection = data_manager.load(fpath)
 
-    stack = microscopy_collection.zstack(c=1)
-    stack = identity(stack)
-    stack = filter_median(stack)
-    stack = gradient_magnitude(stack)
-    stack = discrete_gaussian_filter(stack, 2.0)
-    stack = morphological_watershed(stack, 250)
+    fname = os.path.basename(fpath)
+    name, ext = os.path.splitext(fname)
+
+    for s in microscopy_collection.series:
+        analyse_series(microscopy_collection, s,
+                       os.path.join(output_directory, name))
 
 
-def analyse_directory(input_directory, output_directory):
+def analyse_all_series(input_directory, output_directory):
     """Analyse all the files in a directory."""
     logging.info("Analysing files in directory: {}".format(input_directory))
     for fname in os.listdir(input_directory):
