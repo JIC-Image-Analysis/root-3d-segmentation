@@ -1,5 +1,12 @@
 # root-3d-segmentation
 
+## Todo
+
+- Add simple itk to requirements.txt
+- Document how to use scripts/visualiser.py
+- Add requirements file for the visualiser
+
+
 ## Introduction
 
 This image analysis project has been setup to take advantage of a technology
