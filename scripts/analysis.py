@@ -4,7 +4,10 @@ import os
 import logging
 import argparse
 
-from jicbioimage.core.image import Image, Image3D
+import numpy as np
+
+
+from jicbioimage.core.image import Image3D
 from jicbioimage.core.transform import transformation
 from jicbioimage.core.io import AutoName, AutoWrite, DataManager, FileBackend
 
@@ -22,6 +25,23 @@ def get_data_manager(output_directory):
         os.mkdir(backend_dir)
     backend = FileBackend(backend_dir)
     return DataManager(backend)
+
+
+@transformation
+def convert_stack_slices_from_rgb_to_monochrome(stack):
+    """Return monochrome Image3D stack from rgb stack.
+
+    This is needed as the version of bfconvert in docker image
+    produces TIFF files that have a colour map in them. This is
+    expanded by freeimage to produce z-slices with three layers
+    in them.
+    """
+    ydim, xdim, zdim = stack.shape
+    data = []
+    for zi in range(zdim):
+        if zi % 3 == 0:
+            data.append(stack[:, :, zi])
+    return np.dstack(data).view(Image3D)
 
 
 @transformation
@@ -77,8 +97,10 @@ def segment(stack):
 def analyse_series(microscopy_collection, series, output_directory):
     logging.info("Analysing series: {}".format(series))
     stack = microscopy_collection.zstack(s=series, c=1)
+    stack = convert_stack_slices_from_rgb_to_monochrome(stack)
     stack = segment(stack)
-    output_directory = output_directory + "series{}-segmented.stack".format(series)
+    output_directory = output_directory +  \
+                       "series{}-segmented.stack".format(series)
     stack.to_directory(output_directory)
 
 
@@ -94,6 +116,9 @@ def analyse_file(fpath, output_directory):
     for s in microscopy_collection.series:
         analyse_series(microscopy_collection, s,
                        os.path.join(output_directory, name))
+
+        # To speed up debugging.
+        break
 
 
 def analyse_all_series(input_directory, output_directory):
@@ -137,8 +162,6 @@ def main():
     # Run the analysis.
     if os.path.isfile(args.input_source):
         analyse_file(args.input_source, args.output_dir)
-    elif os.path.isdir(args.input_source):
-        analyse_directory(args.input_source, args.output_dir)
     else:
         parser.error("{} not a file or directory".format(args.input_source))
 
