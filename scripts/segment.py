@@ -4,7 +4,7 @@ import os.path
 
 import SimpleITK as sitk
 
-from jicbioimage.core.image import Image3D
+from jicbioimage.core.image import Image, Image3D
 from jicbioimage.core.util.array import unique_color_array
 from jicbioimage.core.transform import transformation
 

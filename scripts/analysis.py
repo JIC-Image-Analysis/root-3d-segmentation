@@ -45,37 +45,59 @@ def convert_stack_slices_from_rgb_to_monochrome(stack):
     return np.dstack(data).view(Image3D)
 
 
-def write_segmentation_summary_data(output_filename, segmented_stack):
+def find_summed_intensity_per_cell(intensity_stack, segmentation):
+    """Return dictionary in which keys are region identifiers and values are
+    summed voxel intensities taken from intensity_stack."""
+
+    summed_intensities = {}
+
+    for i in segmentation.identifiers:
+        region_coords = segmentation.region_by_identifier(i).index_arrays
+        value = int(np.sum(intensity_stack[region_coords]))
+        summed_intensities[str(i)] = dict(intensity=value)
+
+    return summed_intensities
+
+
+def write_segmentation_summary_data(output_filename, segmented_stack,
+                                    intensity_stack):
     """Write JSON description of each segmented cell in a segmented image
     stack."""
 
-    summary_data = []
+    summary_data = find_summed_intensity_per_cell(intensity_stack,
+                                                  segmented_stack)
 
     for identifier in segmented_stack.identifiers:
         segment = segmented_stack.region_by_identifier(identifier)
         area = int(segment.area)
         centroid = map(float, segment.centroid)
 
-        datum = {"area" : area,
-                 "centroid" : centroid,
-                 "identifier" : int(identifier)}
-        summary_data.append(datum)
+        datum = {"area": area,
+                 "centroid": centroid,
+                 "identifier": int(identifier)}
+        summary_data[str(identifier)].update(datum)
 
     with open(output_filename, "w") as f:
         json.dump(summary_data, f)
 
 
 def analyse_series(microscopy_collection, series, output_directory):
+
     logging.info("Analysing series: {}".format(series))
     stack = microscopy_collection.zstack(s=series, c=1)
     stack = convert_stack_slices_from_rgb_to_monochrome(stack)
     stack = segment(stack)
     output_directory = output_directory +  \
-                       "series{}-segmented.stack".format(series)
+                       "series{}-segmented.istack".format(series)
     stack.to_directory(output_directory)
-    json_data_filename = os.path.join(output_directory,
-            "series{}-cellinfo.json".format(series))
-    write_segmentation_summary_data(json_data_filename, stack.view(SegmentedImage))
+
+    json_data_filename = os.path.join(output_directory, "cellinfo.json")
+
+    intensity_stack = microscopy_collection.zstack(s=series, c=0)
+    intensity_stack = convert_stack_slices_from_rgb_to_monochrome(intensity_stack)
+    write_segmentation_summary_data(json_data_filename,
+                                    stack.view(SegmentedImage),
+                                    intensity_stack)
 
 
 def analyse_file(fpath, output_directory):
