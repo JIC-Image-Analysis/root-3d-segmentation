@@ -113,9 +113,6 @@ def analyse_file(fpath, output_directory):
         analyse_series(microscopy_collection, s,
                        os.path.join(output_directory, name))
 
-        # To speed up debugging.
-        break
-
 
 def analyse_all_series(input_directory, output_directory):
     """Analyse all the files in a directory."""
