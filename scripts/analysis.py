@@ -1,17 +1,18 @@
 """root-3d-segmentation analysis."""
 
 import os
+import json
 import logging
 import argparse
 
 import numpy as np
 
-
 from jicbioimage.core.image import Image3D
 from jicbioimage.core.transform import transformation
 from jicbioimage.core.io import AutoName, AutoWrite, DataManager, FileBackend
+from jicbioimage.segment import SegmentedImage
 
-import SimpleITK as sitk
+from segment import segment
 
 __version__ = "0.0.1"
 
@@ -44,54 +45,24 @@ def convert_stack_slices_from_rgb_to_monochrome(stack):
     return np.dstack(data).view(Image3D)
 
 
-@transformation
-def identity(im3d):
-    return im3d
+def write_segmentation_summary_data(output_filename, segmented_stack):
+    """Write JSON description of each segmented cell in a segmented image
+    stack."""
 
+    summary_data = []
 
-@transformation
-def filter_median(im3d):
-    itk_im = sitk.GetImageFromArray(im3d)
-    median_filter = sitk.MedianImageFilter()
-    itk_im = median_filter.Execute(itk_im)
-    return Image3D.from_array(sitk.GetArrayFromImage(itk_im),
-                              log_in_history=False)
+    for identifier in segmented_stack.identifiers:
+        segment = segmented_stack.region_by_identifier(identifier)
+        area = int(segment.area)
+        centroid = map(float, segment.centroid)
 
+        datum = {"area" : area,
+                 "centroid" : centroid,
+                 "identifier" : int(identifier)}
+        summary_data.append(datum)
 
-@transformation
-def gradient_magnitude(im3d):
-    itk_im = sitk.GetImageFromArray(im3d)
-    itk_im = sitk.GradientMagnitude(itk_im)
-    return Image3D.from_array(sitk.GetArrayFromImage(itk_im),
-                              log_in_history=False)
-
-
-@transformation
-def discrete_gaussian_filter(im3d, variance):
-    itk_im = sitk.GetImageFromArray(im3d)
-    gaussian_filter = sitk.DiscreteGaussianImageFilter()
-    gaussian_filter.SetVariance(2.0)
-    itk_im = gaussian_filter.Execute(itk_im)
-    return Image3D.from_array(sitk.GetArrayFromImage(itk_im),
-                              log_in_history=False)
-
-
-@transformation
-def morphological_watershed(im3d, level):
-    itk_im = sitk.GetImageFromArray(im3d)
-    itk_im = sitk.MorphologicalWatershed(itk_im, level=level)
-    return Image3D.from_array(sitk.GetArrayFromImage(itk_im),
-                              log_in_history=False)
-
-
-def segment(stack):
-    """Segment the stack into 3D regions representing cells."""
-    stack = identity(stack)
-    stack = filter_median(stack)
-    stack = gradient_magnitude(stack)
-    stack = discrete_gaussian_filter(stack, 2.0)
-    stack = morphological_watershed(stack, 250)
-    return stack
+    with open(output_filename, "w") as f:
+        json.dump(summary_data, f)
 
 
 def analyse_series(microscopy_collection, series, output_directory):
@@ -102,6 +73,9 @@ def analyse_series(microscopy_collection, series, output_directory):
     output_directory = output_directory +  \
                        "series{}-segmented.stack".format(series)
     stack.to_directory(output_directory)
+    json_data_filename = os.path.join(output_directory,
+            "series{}-cellinfo.json".format(series))
+    write_segmentation_summary_data(json_data_filename, stack.view(SegmentedImage))
 
 
 def analyse_file(fpath, output_directory):
