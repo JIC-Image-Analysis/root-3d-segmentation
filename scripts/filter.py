@@ -25,11 +25,21 @@ def rgb_to_identifier(array):
     return id_array
 
 
-@transformation
 def filter_by_property(im3d, cellinfo, filter_func):
     for i, props in cellinfo.items():
         if not filter_func(props):
             im3d[im3d == int(i)] = 0
+            del cellinfo[i]
+
+    dpath = AutoName.name(filter_by_property)
+    dpath = dpath + ".info.stack"
+    if not os.path.isdir(dpath):
+        os.mkdir(dpath)
+
+    im3d.to_directory(dpath)
+    with open(os.path.join(dpath, "cellinfo.json"), "w") as fh:
+        json.dump(cellinfo, fh, indent=2)
+
     return im3d
 
 
