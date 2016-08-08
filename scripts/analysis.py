@@ -78,7 +78,7 @@ def write_segmentation_summary_data(output_filename, segmented_stack,
         summary_data[str(identifier)].update(datum)
 
     with open(output_filename, "w") as f:
-        json.dump(summary_data, f, indent=2)
+        json.dump(summary_data.values(), f, indent=2)
 
 
 def analyse_series(microscopy_collection, series, output_directory):
@@ -112,6 +112,7 @@ def analyse_file(fpath, output_directory):
     for s in microscopy_collection.series:
         analyse_series(microscopy_collection, s,
                        os.path.join(output_directory, name))
+        break
 
 
 def analyse_all_series(input_directory, output_directory):

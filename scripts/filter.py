@@ -26,9 +26,9 @@ def rgb_to_identifier(array):
 
 
 def filter_by_property(im3d, cellinfo, filter_func):
-    for i, props in cellinfo.items():
+    for props in cellinfo:
         if not filter_func(props):
-            im3d[im3d == int(i)] = 0
+            im3d[im3d == props.identifier] = 0
             del cellinfo[i]
 
     dpath = AutoName.name(filter_by_property)
