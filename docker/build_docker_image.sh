@@ -1,4 +1,4 @@
-!#/bin/bash
+#!/bin/bash
 
 IMAGE_NAME=root-3d-segmentation
 
