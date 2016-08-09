@@ -7,7 +7,7 @@ import json
 
 from jicbioimage.core.io import AutoName
 
-from utils import stack_from_directory
+from utils import ColorImage3D
 
 
 def filter_by_property(im3d, cellinfo, filter_func):
@@ -48,6 +48,6 @@ if __name__ == "__main__":
     AutoName.directory = args.input_dir
 
     cellinfo = json.load(file(os.path.join(args.input_dir, "cellinfo.json")))
-    cells = stack_from_directory(args.input_dir)
+    cells = ColorImage3D.from_directory(args.input_dir)
 
     cells = filter_by_property(cells, cellinfo, real_cells)

@@ -3,39 +3,49 @@
 import argparse
 import json
 
+import numpy as np
+
 import os
 import os.path
 
-from jicbioimage.core.image import Image3D
 from jicbioimage.core.io import AutoName
 from jicbioimage.illustrate import Canvas
 
+from utils import ColorImage3D
 
-def normalised_intensity(cell_props):
-    """Return the normalised intensity from a cell info entry."""
+
+def intensity_per_volume(cell_props):
+    """Return the intensity per volume for a cell."""
     return float(cell_props["intensity"]) / cell_props["area"]
 
 
-def min_max_normalised_intenisty(cellinfo):
-    """Return (min, max) normalised intensity tuple."""
-    normalised_intensities = [normalised_intensity(p) for p in cellinfo]
-    return min(normalised_intensities), max(normalised_intensities)
+def min_max_cell_intensity(cellinfo):
+    """Return (min, max) cell intensity tuple."""
+    cell_intensities = [intensity_per_volume(p) for p in cellinfo]
+    return min(cell_intensities), max(cell_intensities)
 
 
-def get_rgb_from_normalised_intensity(normalised_intensity, imin, imax):
-    green = ((normalised_intensity - imin) / (imax - imin)) * 255
-    return (0, green, 255)
+def get_normalised_rgb_from_cell_intensity(cell_intensity, imin, imax):
+    green = ((cell_intensity - imin) / (imax - imin)) * 255
+    green = int(round(green))
+    assert green >= 0
+    assert green < 256
+    return (green, green, green)
 
 
 def write_zslice(zslice, cellinfo, fpath):
     """Write PNG z-slice."""
     ydim, xdim = zslice.shape
-    imin, imax = min_max_normalised_intenisty(cellinfo)
+    imin, imax = min_max_cell_intensity(cellinfo)
     canvas = Canvas.blank_canvas(width=xdim, height=ydim)
-    for props in cellinfo:
-        ni = normalised_intensity(props)
-        color = get_rgb_from_normalised_intensity(ni, imin, imax)
+    for i, props in enumerate(cellinfo):
+        cell_intenistity = intensity_per_volume(props)
+        color = get_normalised_rgb_from_cell_intensity(cell_intenistity,
+                                                       imin, imax)
         region = zslice == props["identifier"]
+        if np.sum(region) == 0:
+            continue
+        print "mask", i, np.sum(region)
         canvas.mask_region(region, color)
 
     with open(fpath, "wb") as fh:
@@ -67,6 +77,6 @@ if __name__ == "__main__":
     AutoName.directory = args.input_dir
 
     cellinfo = json.load(file(os.path.join(args.input_dir, "cellinfo.json")))
-    cells = Image3D.from_directory(args.input_dir)
+    cells = ColorImage3D.from_directory(args.input_dir)
 
     create_intensity_stack(cells, cellinfo)

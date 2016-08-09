@@ -1,26 +1,11 @@
 """Code for segmenting 3D images."""
 
-import os.path
-
 import SimpleITK as sitk
 
-from jicbioimage.core.image import Image, Image3D
-from jicbioimage.core.util.array import unique_color_array
+from jicbioimage.core.image import Image3D
 from jicbioimage.core.transform import transformation
 
-class ColorImage3D(Image3D):
-    def to_directory(self, directory):
-        if not os.path.isdir(directory):
-            os.mkdir(directory)
-        xdim, ydim, zdim = self.shape
-        num_digits = Image3D._num_digits(zdim-1)
-        for z in range(zdim):
-            num = str(z).zfill(num_digits)
-            fname = "z{}.png".format(num)
-            fpath = os.path.join(directory, fname)
-            with open(fpath, "wb") as fh:
-                im = Image.from_array(unique_color_array(self[:, :, z]))
-                fh.write(im.png())
+from utils import ColorImage3D
 
 
 @transformation
