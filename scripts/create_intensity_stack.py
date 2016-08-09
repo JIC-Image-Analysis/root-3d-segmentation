@@ -30,7 +30,7 @@ def get_normalised_rgb_from_cell_intensity(cell_intensity, imin, imax):
     green = int(round(green))
     assert green >= 0
     assert green < 256
-    return (green, green, green)
+    return (green, green, 255 - green)
 
 
 def write_zslice(zslice, cellinfo, fpath):
@@ -45,7 +45,6 @@ def write_zslice(zslice, cellinfo, fpath):
         region = zslice == props["identifier"]
         if np.sum(region) == 0:
             continue
-        print "mask", i, np.sum(region)
         canvas.mask_region(region, color)
 
     with open(fpath, "wb") as fh:
