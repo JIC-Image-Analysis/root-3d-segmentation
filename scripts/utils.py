@@ -6,7 +6,9 @@ import numpy as np
 import skimage.io
 
 from jicbioimage.core.util.color import identifier_from_unique_color
-from jicbioimage.core.image import Image3D, _sorted_listdir
+from jicbioimage.core.image import _sorted_listdir
+
+from segment import ColorImage3D
 
 
 def rgb_to_identifier(array):
@@ -34,4 +36,4 @@ def stack_from_directory(directory):
 
     images = [rgb_to_identifier(skimage.io.imread(fp)) for fp in fpaths]
     stack = np.dstack(images)
-    return stack.view(Image3D)
+    return stack.view(ColorImage3D)
