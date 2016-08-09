@@ -26,10 +26,12 @@ def rgb_to_identifier(array):
 
 
 def filter_by_property(im3d, cellinfo, filter_func):
+    new_cellinfo = []
     for props in cellinfo:
         if not filter_func(props):
-            im3d[im3d == props.identifier] = 0
-            del cellinfo[i]
+            im3d[im3d == props["identifier"]] = 0
+        else:
+            new_cellinfo.append(props)
 
     dpath = AutoName.name(filter_by_property)
     dpath = dpath + ".info.stack"
@@ -38,7 +40,7 @@ def filter_by_property(im3d, cellinfo, filter_func):
 
     im3d.to_directory(dpath)
     with open(os.path.join(dpath, "cellinfo.json"), "w") as fh:
-        json.dump(cellinfo, fh, indent=2)
+        json.dump(new_cellinfo, fh, indent=2)
 
     return im3d
 
