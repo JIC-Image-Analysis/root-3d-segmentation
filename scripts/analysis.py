@@ -100,7 +100,7 @@ def analyse_series(microscopy_collection, series, output_directory):
                                     intensity_stack)
 
 
-def analyse_file(fpath, output_directory):
+def analyse_file(fpath, output_directory, series):
     """Analyse a single file."""
     logging.info("Analysing file: {}".format(fpath))
     data_manager = get_data_manager(output_directory)
@@ -109,9 +109,13 @@ def analyse_file(fpath, output_directory):
     fname = os.path.basename(fpath)
     name, ext = os.path.splitext(fname)
 
-    for s in microscopy_collection.series:
-        analyse_series(microscopy_collection, s,
+    if series is not None:
+        analyse_series(microscopy_collection, series,
                        os.path.join(output_directory, name))
+    else:
+        for s in microscopy_collection.series:
+            analyse_series(microscopy_collection, s,
+                           os.path.join(output_directory, name))
 
 
 def analyse_all_series(input_directory, output_directory):
@@ -127,6 +131,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input_source", help="Input file/directory")
     parser.add_argument("output_dir", help="Output directory")
+    parser.add_argument("-s", "--series", type=int, default=None, help="series")
     parser.add_argument("--debug", default=False, action="store_true",
                         help="Write out intermediate images")
     args = parser.parse_args()
@@ -154,7 +159,7 @@ def main():
 
     # Run the analysis.
     if os.path.isfile(args.input_source):
-        analyse_file(args.input_source, args.output_dir)
+        analyse_file(args.input_source, args.output_dir, args.series)
     else:
         parser.error("{} not a file or directory".format(args.input_source))
 
