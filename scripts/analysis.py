@@ -112,7 +112,6 @@ def analyse_file(fpath, output_directory):
     for s in microscopy_collection.series:
         analyse_series(microscopy_collection, s,
                        os.path.join(output_directory, name))
-        break
 
 
 def analyse_all_series(input_directory, output_directory):
