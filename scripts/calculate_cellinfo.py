@@ -87,8 +87,11 @@ def analyse_series(microscopy_collection, series, output_directory):
     stack = microscopy_collection.zstack(s=series, c=1)
     stack = convert_stack_slices_from_rgb_to_monochrome(stack)
     stack = segment(stack)
-    output_directory = output_directory +  \
-                       "series{}-segmented.istack".format(series)
+
+    if not os.path.isdir(output_directory):
+        os.mkdir(output_directory)
+    output_directory = os.path.join(output_directory,
+                                    "series{}-segmented.istack".format(series))
     stack.to_directory(output_directory)
 
     json_data_filename = os.path.join(output_directory, "cellinfo.json")
