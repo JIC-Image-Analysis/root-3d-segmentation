@@ -110,7 +110,6 @@ def analyse_file(fpath, output_directory, series):
     data_manager = get_data_manager(output_directory)
     microscopy_collection = data_manager.load(fpath)
     omexml = OmeXml(fpath)
-    print omexml.xml
 
     fname = os.path.basename(fpath)
     name, ext = os.path.splitext(fname)
