@@ -25,7 +25,7 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 
-OME_SCHEMA = "{http://www.openmicroscopy.org/Schemas/OME/2013-06}"
+OME_SCHEMA = "{http://www.openmicroscopy.org/Schemas/OME/2016-06}"
 
 
 def tag(name):

@@ -13,6 +13,7 @@ from jicbioimage.core.io import AutoName, AutoWrite, DataManager, FileBackend
 from jicbioimage.segment import SegmentedImage
 
 from segment import segment
+from omexml import OmeXml
 
 __version__ = "0.0.1"
 
@@ -81,7 +82,7 @@ def write_segmentation_summary_data(output_filename, segmented_stack,
         json.dump(summary_data.values(), f, indent=2)
 
 
-def analyse_series(microscopy_collection, series, output_directory):
+def analyse_series(microscopy_collection, series, series_name, output_directory):
 
     logging.info("Analysing series: {}".format(series))
     stack = microscopy_collection.zstack(s=series, c=1)
@@ -91,7 +92,7 @@ def analyse_series(microscopy_collection, series, output_directory):
     if not os.path.isdir(output_directory):
         os.mkdir(output_directory)
     output_directory = os.path.join(output_directory,
-                                    "series{}-segmented.istack".format(series))
+                                    "{}.istack".format(series_name))
     stack.to_directory(output_directory)
 
     json_data_filename = os.path.join(output_directory, "cellinfo.json")
@@ -108,16 +109,20 @@ def analyse_file(fpath, output_directory, series):
     logging.info("Analysing file: {}".format(fpath))
     data_manager = get_data_manager(output_directory)
     microscopy_collection = data_manager.load(fpath)
+    omexml = OmeXml(fpath)
+    print omexml.xml
 
     fname = os.path.basename(fpath)
     name, ext = os.path.splitext(fname)
 
     if series is not None:
-        analyse_series(microscopy_collection, series,
+        series_name = omexml.series(series).name
+        analyse_series(microscopy_collection, series, series_name,
                        os.path.join(output_directory, name))
     else:
         for s in microscopy_collection.series:
-            analyse_series(microscopy_collection, s,
+            series_name = omexml.series(s).name
+            analyse_series(microscopy_collection, s, series_name,
                            os.path.join(output_directory, name))
 
 
