@@ -13,6 +13,8 @@ from jicbioimage.core.io import AutoName, AutoWrite, DataManager, FileBackend
 from jicbioimage.segment import SegmentedImage
 
 from segment import segment
+from cellinfo import cellinfo
+from filter_real_cells import filter_by_property, real_cells
 from omexml import OmeXml
 
 __version__ = "0.0.1"
@@ -29,64 +31,34 @@ def get_data_manager(output_directory):
     return DataManager(backend)
 
 
-def find_summed_intensity_per_cell(intensity_stack, segmentation):
-    """Return dictionary in which keys are region identifiers and values are
-    summed voxel intensities taken from intensity_stack."""
-
-    summed_intensities = {}
-
-    for i in segmentation.identifiers:
-        region_coords = segmentation.region_by_identifier(i).index_arrays
-        value = int(np.sum(intensity_stack[region_coords]))
-        summed_intensities[str(i)] = dict(intensity=value)
-
-    return summed_intensities
-
-
-def write_segmentation_summary_data(output_filename, segmented_stack,
-                                    intensity_stack):
-    """Write JSON description of each segmented cell in a segmented image
-    stack."""
-
-    summary_data = find_summed_intensity_per_cell(intensity_stack,
-                                                  segmented_stack)
-
-    for identifier in segmented_stack.identifiers:
-        segment = segmented_stack.region_by_identifier(identifier)
-        area = int(segment.area)
-        centroid = map(float, segment.centroid)
-
-        datum = {"area": area,
-                 "centroid": centroid,
-                 "identifier": int(identifier)}
-        summary_data[str(identifier)].update(datum)
-
-    with open(output_filename, "w") as f:
-        json.dump(summary_data.values(), f, indent=2)
-
-
 def analyse_series(microscopy_collection, series, series_name, output_directory):
 
     logging.info("Analysing series: {}".format(series))
-    stack = microscopy_collection.zstack(s=series, c=1)
-    stack = segment(stack)
 
     if not os.path.isdir(output_directory):
         os.mkdir(output_directory)
     output_directory = os.path.join(output_directory,
                                     "{}.istack".format(series_name))
-    stack.to_directory(output_directory)
 
-    json_data_filename = os.path.join(output_directory, "cellinfo.json")
-
-    intensity_stack = microscopy_collection.zstack(s=series, c=0)
-    write_segmentation_summary_data(json_data_filename,
-                                    stack.view(SegmentedImage),
-                                    intensity_stack)
-
-    series_data_filename = os.path.join(output_directory, "series_id.txt")
-    with open(series_data_filename, "w") as fh:
+    # Write series identifier to disk.
+    series_id_fname = os.path.join(output_directory, "series_id.txt")
+    with open(series_id_fname, "w") as fh:
         fh.write("{}\n".format(series))
+
+    # Segment root and write to disk.
+    stack = microscopy_collection.zstack(s=series, c=1)
+    stack = segment(stack)
+    stack.to_directory(output_directory)
+    segmented_stack = stack.view(SegmentedImage)
+
+    # Calculate cell info and write to disk.
+    cellinfo_fname = os.path.join(output_directory, "cellinfo.json")
+    intensity_stack = microscopy_collection.zstack(s=series, c=0)
+    info = cellinfo(intensity_stack, segmented_stack)
+    with open(cellinfo_fname, "w") as fh:
+        json.dump(info, fh, indent=2)
+
+    # Filter cells.
 
 
 def analyse_file(fpath, output_directory, series):
