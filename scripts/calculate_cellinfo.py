@@ -82,14 +82,6 @@ def analyse_file(fpath, output_directory, series):
                            os.path.join(output_directory, name))
 
 
-def analyse_all_series(input_directory, output_directory):
-    """Analyse all the files in a directory."""
-    logging.info("Analysing files in directory: {}".format(input_directory))
-    for fname in os.listdir(input_directory):
-        fpath = os.path.join(input_directory, fname)
-        analyse_file(fpath, output_directory)
-
-
 def main():
     # Parse the command line arguments.
     parser = argparse.ArgumentParser(description=__doc__)
