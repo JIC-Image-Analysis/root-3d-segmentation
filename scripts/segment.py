@@ -54,5 +54,5 @@ def segment(stack):
     stack = filter_median(stack)
     stack = gradient_magnitude(stack)
     stack = discrete_gaussian_filter(stack, 2.0)
-    stack = morphological_watershed(stack, 170)
+    stack = morphological_watershed(stack, 0.664)
     return stack

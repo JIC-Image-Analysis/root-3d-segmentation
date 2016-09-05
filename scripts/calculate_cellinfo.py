@@ -29,23 +29,6 @@ def get_data_manager(output_directory):
     return DataManager(backend)
 
 
-@transformation
-def convert_stack_slices_from_rgb_to_monochrome(stack):
-    """Return monochrome Image3D stack from rgb stack.
-
-    This is needed as the version of bfconvert in docker image
-    produces TIFF files that have a colour map in them. This is
-    expanded by freeimage to produce z-slices with three layers
-    in them.
-    """
-    ydim, xdim, zdim = stack.shape
-    data = []
-    for zi in range(zdim):
-        if zi % 3 == 0:
-            data.append(stack[:, :, zi])
-    return np.dstack(data).view(Image3D)
-
-
 def find_summed_intensity_per_cell(intensity_stack, segmentation):
     """Return dictionary in which keys are region identifiers and values are
     summed voxel intensities taken from intensity_stack."""
@@ -86,7 +69,6 @@ def analyse_series(microscopy_collection, series, series_name, output_directory)
 
     logging.info("Analysing series: {}".format(series))
     stack = microscopy_collection.zstack(s=series, c=1)
-    stack = convert_stack_slices_from_rgb_to_monochrome(stack)
     stack = segment(stack)
 
     if not os.path.isdir(output_directory):
@@ -98,7 +80,6 @@ def analyse_series(microscopy_collection, series, series_name, output_directory)
     json_data_filename = os.path.join(output_directory, "cellinfo.json")
 
     intensity_stack = microscopy_collection.zstack(s=series, c=0)
-    intensity_stack = convert_stack_slices_from_rgb_to_monochrome(intensity_stack)
     write_segmentation_summary_data(json_data_filename,
                                     stack.view(SegmentedImage),
                                     intensity_stack)
