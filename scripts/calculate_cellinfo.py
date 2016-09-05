@@ -71,15 +71,9 @@ def analyse_file(fpath, output_directory, series):
     fname = os.path.basename(fpath)
     name, ext = os.path.splitext(fname)
 
-    if series is not None:
-        series_name = omexml.series(series).name
-        analyse_series(microscopy_collection, series, series_name,
-                       os.path.join(output_directory, name))
-    else:
-        for s in microscopy_collection.series:
-            series_name = omexml.series(s).name
-            analyse_series(microscopy_collection, s, series_name,
-                           os.path.join(output_directory, name))
+    series_name = omexml.series(series).name
+    analyse_series(microscopy_collection, series, series_name,
+                   os.path.join(output_directory, name))
 
 
 def main():
