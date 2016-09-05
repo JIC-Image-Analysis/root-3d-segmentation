@@ -84,6 +84,10 @@ def analyse_series(microscopy_collection, series, series_name, output_directory)
                                     stack.view(SegmentedImage),
                                     intensity_stack)
 
+    series_data_filename = os.path.join(output_directory, "series_id.txt")
+    with open(series_data_filename, "w") as fh:
+        fh.write("{}\n".format(series))
+
 
 def analyse_file(fpath, output_directory, series):
     """Analyse a single file."""
