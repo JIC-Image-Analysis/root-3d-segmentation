@@ -85,9 +85,9 @@ def analyse_file(fpath, output_directory, series):
 def main():
     # Parse the command line arguments.
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("input_source", help="Input file/directory")
+    parser.add_argument("input_source", help="Input file")
+    parser.add_argument("series", type=int, help="series identifier")
     parser.add_argument("output_dir", help="Output directory")
-    parser.add_argument("-s", "--series", type=int, default=None, help="series")
     parser.add_argument("--debug", default=False, action="store_true",
                         help="Write out intermediate images")
     args = parser.parse_args()
