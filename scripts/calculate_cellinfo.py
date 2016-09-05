@@ -35,24 +35,25 @@ def analyse_series(microscopy_collection, series, series_name, output_directory)
 
     logging.info("Analysing series: {}".format(series))
 
-    if not os.path.isdir(output_directory):
-        os.mkdir(output_directory)
-    output_directory = os.path.join(output_directory,
-                                    "{}.istack".format(series_name))
-
     # Write series identifier to disk.
     series_id_fname = os.path.join(output_directory, "series_id.txt")
     with open(series_id_fname, "w") as fh:
         fh.write("{}\n".format(series))
 
+    # Write series name to disk.
+    series_name_fname = os.path.join(output_directory, "series_name.txt")
+    with open(series_name_fname, "w") as fh:
+        fh.write("{}\n".format(series_name))
+
     # Segment root and write to disk.
+    seg_out_dir = os.path.join(output_directory, "segmented.istack")
     stack = microscopy_collection.zstack(s=series, c=1)
     stack = segment(stack)
-    stack.to_directory(output_directory)
-    segmented_stack = stack.view(SegmentedImage)
+    stack.to_directory(seg_out_dir)
 
     # Calculate cell info and write to disk.
-    cellinfo_fname = os.path.join(output_directory, "cellinfo.json")
+    cellinfo_fname = os.path.join(seg_out_dir, "cellinfo.json")
+    segmented_stack = stack.view(SegmentedImage)
     intensity_stack = microscopy_collection.zstack(s=series, c=0)
     info = cellinfo(intensity_stack, segmented_stack)
     with open(cellinfo_fname, "w") as fh:
@@ -68,12 +69,9 @@ def analyse_file(fpath, output_directory, series):
     microscopy_collection = data_manager.load(fpath)
     omexml = OmeXml(fpath)
 
-    fname = os.path.basename(fpath)
-    name, ext = os.path.splitext(fname)
-
     series_name = omexml.series(series).name
     analyse_series(microscopy_collection, series, series_name,
-                   os.path.join(output_directory, name))
+                   output_directory)
 
 
 def main():
@@ -86,10 +84,24 @@ def main():
                         help="Write out intermediate images")
     args = parser.parse_args()
 
+    if not os.path.isfile(args.input_source):
+        parser.error("{} not a file".format(args.input_source))
+
     # Create the output directory if it does not exist.
     if not os.path.isdir(args.output_dir):
         os.mkdir(args.output_dir)
-    AutoName.directory = args.output_dir
+
+    # Create output directory for input microscopy file.
+    fname = os.path.basename(args.input_source)
+    name, ext = os.path.splitext(fname)
+    output_dir = os.path.join(args.output_dir, name)
+    if not os.path.isdir(output_dir):
+        os.mkdir(output_dir)
+
+    # Create output directory for input series.
+    output_dir = os.path.join(output_dir, str(args.series))
+    if not os.path.isdir(output_dir):
+        os.mkdir(output_dir)
 
     # Only write out intermediate images in debug mode.
     if not args.debug:
@@ -97,7 +109,7 @@ def main():
 
     # Setup a logger for the script.
     log_fname = "audit.log"
-    log_fpath = os.path.join(args.output_dir, log_fname)
+    log_fpath = os.path.join(output_dir, log_fname)
     logging_level = logging.INFO
     if args.debug:
         logging_level = logging.DEBUG
@@ -108,10 +120,7 @@ def main():
     logging.info("Script version: {}".format(__version__))
 
     # Run the analysis.
-    if os.path.isfile(args.input_source):
-        analyse_file(args.input_source, args.output_dir, args.series)
-    else:
-        parser.error("{} not a file or directory".format(args.input_source))
+    analyse_file(args.input_source, output_dir, args.series)
 
 if __name__ == "__main__":
     main()
