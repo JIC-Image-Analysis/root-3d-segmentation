@@ -5,16 +5,14 @@ import json
 import logging
 import argparse
 
-import numpy as np
-
 from jicbioimage.core.image import Image3D
-from jicbioimage.core.transform import transformation
 from jicbioimage.core.io import AutoName, AutoWrite, DataManager, FileBackend
 from jicbioimage.segment import SegmentedImage
 
 from segment import segment
 from cellinfo import cellinfo
 from filter_real_cells import filter_by_property, real_cells
+from csv import csv
 from omexml import OmeXml
 
 __version__ = "0.0.1"
@@ -39,7 +37,9 @@ def create_istack(segmentation, info, output_dir, name):
     with open(info_fname, "w") as fh:
         json.dump(info, fh, indent=2)
 
-def analyse_series(microscopy_collection, series, series_name, output_directory):
+
+def analyse_series(microscopy_collection, input_fname, series, series_name,
+                   output_directory):
 
     # Write series identifier to disk.
     series_id_fname = os.path.join(output_directory, "series_id.txt")
@@ -55,7 +55,8 @@ def analyse_series(microscopy_collection, series, series_name, output_directory)
     stack = microscopy_collection.zstack(s=series, c=1)
     stack = segment(stack)
     segmented_cells = stack.view(SegmentedImage)
-    logging.info("Root segmented into {} cells".format(len(segmented_cells.identifiers)))
+    num_cells = len(segmented_cells.identifiers)
+    logging.info("Root segmented into {} cells".format(num_cells))
 
     # Calculate cell info and write to disk.
     intensity_stack = microscopy_collection.zstack(s=series, c=0)
@@ -75,7 +76,13 @@ def analyse_series(microscopy_collection, series, series_name, output_directory)
                                                        min_cell_size,
                                                        max_cell_size)
     create_istack(filtered_cells, filtered_info, output_directory, "filtered")
-    logging.info("Post filter {} cells remain".format(len(filtered_cells.identifiers)))
+    num_cells = len(filtered_cells.identifiers)
+    logging.info("Post filter {} cells remain".format(num_cells))
+
+    # Write csv.
+    csv_text = csv(input_fname, series_name, series, filtered_info)
+    with open(os.path.join(output_directory, "cells.csv"), "w") as fh:
+        fh.write(csv_text)
 
 
 def analyse_file(fpath, output_directory, series):
@@ -89,7 +96,10 @@ def analyse_file(fpath, output_directory, series):
     series_name = omexml.series(series).name
     logging.info("Series name: {}".format(series_name))
 
-    analyse_series(microscopy_collection, series, series_name,
+    analyse_series(microscopy_collection,
+                   os.path.basename(fpath),
+                   series,
+                   series_name,
                    output_directory)
 
 
@@ -140,6 +150,7 @@ def main():
 
     # Run the analysis.
     analyse_file(args.input_source, output_dir, args.series)
+
 
 if __name__ == "__main__":
     main()
