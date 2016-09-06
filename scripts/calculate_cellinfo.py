@@ -31,9 +31,15 @@ def get_data_manager(output_directory):
     return DataManager(backend)
 
 
-def analyse_series(microscopy_collection, series, series_name, output_directory):
+def create_istack(segmentation, info, output_dir, name):
+    istack_fname = name + ".istack"
+    istack_output_dir = os.path.join(output_dir, istack_fname)
+    segmentation.view(Image3D).to_directory(istack_output_dir)
+    info_fname = os.path.join(istack_output_dir, "cellinfo.json")
+    with open(info_fname, "w") as fh:
+        json.dump(info, fh, indent=2)
 
-    logging.info("Analysing series: {}".format(series))
+def analyse_series(microscopy_collection, series, series_name, output_directory):
 
     # Write series identifier to disk.
     series_id_fname = os.path.join(output_directory, "series_id.txt")
@@ -45,31 +51,44 @@ def analyse_series(microscopy_collection, series, series_name, output_directory)
     with open(series_name_fname, "w") as fh:
         fh.write("{}\n".format(series_name))
 
-    # Segment root and write to disk.
-    seg_out_dir = os.path.join(output_directory, "segmented.istack")
+    # Segment root into cells.
     stack = microscopy_collection.zstack(s=series, c=1)
     stack = segment(stack)
-    stack.to_directory(seg_out_dir)
+    segmented_cells = stack.view(SegmentedImage)
+    logging.info("Root segmented into {} cells".format(len(segmented_cells.identifiers)))
 
     # Calculate cell info and write to disk.
-    cellinfo_fname = os.path.join(seg_out_dir, "cellinfo.json")
-    segmented_stack = stack.view(SegmentedImage)
     intensity_stack = microscopy_collection.zstack(s=series, c=0)
-    info = cellinfo(intensity_stack, segmented_stack)
-    with open(cellinfo_fname, "w") as fh:
-        json.dump(info, fh, indent=2)
+    info = cellinfo(intensity_stack, segmented_cells)
+
+    # Create segmented istack.
+    create_istack(segmented_cells, info, output_directory, "segmented")
 
     # Filter cells.
+    min_cell_size = 10000
+    max_cell_size = 80000
+    logging.info("Filter cells < {} voxels".format(min_cell_size))
+    logging.info("Filter cells > {} voxels".format(max_cell_size))
+    filtered_cells, filtered_info = filter_by_property(segmented_cells,
+                                                       info,
+                                                       real_cells,
+                                                       min_cell_size,
+                                                       max_cell_size)
+    create_istack(filtered_cells, filtered_info, output_directory, "filtered")
+    logging.info("Post filter {} cells remain".format(len(filtered_cells.identifiers)))
 
 
 def analyse_file(fpath, output_directory, series):
     """Analyse a single file."""
     logging.info("Analysing file: {}".format(fpath))
+    logging.info("Series identifier: {}".format(series))
     data_manager = get_data_manager(output_directory)
     microscopy_collection = data_manager.load(fpath)
     omexml = OmeXml(fpath)
 
     series_name = omexml.series(series).name
+    logging.info("Series name: {}".format(series_name))
+
     analyse_series(microscopy_collection, series, series_name,
                    output_directory)
 
