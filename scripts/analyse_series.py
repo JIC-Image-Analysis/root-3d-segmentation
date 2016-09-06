@@ -14,6 +14,7 @@ from cellinfo import cellinfo
 from filter_real_cells import filter_by_property, real_cells
 from create_intensity_stack import create_intensity_stack
 from csv import csv
+from histogram import generate_histogram
 from omexml import OmeXml
 
 __version__ = "0.0.1"
@@ -37,6 +38,7 @@ def create_istack(segmentation, info, output_dir, name):
     info_fname = os.path.join(istack_output_dir, "cellinfo.json")
     with open(info_fname, "w") as fh:
         json.dump(info, fh, indent=2)
+    return istack_output_dir
 
 
 def analyse_series(microscopy_collection, input_fname, series, series_name,
@@ -76,7 +78,8 @@ def analyse_series(microscopy_collection, input_fname, series, series_name,
                                                        real_cells,
                                                        min_cell_size,
                                                        max_cell_size)
-    create_istack(filtered_cells, filtered_info, output_directory, "filtered")
+    filtered_istack_dir = create_istack(filtered_cells, filtered_info,
+                                        output_directory, "filtered")
     num_cells = len(filtered_cells.identifiers)
     logging.info("Post filter {} cells remain".format(num_cells))
 
@@ -89,6 +92,10 @@ def analyse_series(microscopy_collection, input_fname, series, series_name,
     csv_text = csv(input_fname, series_name, series, filtered_info)
     with open(os.path.join(output_directory, "cells.csv"), "w") as fh:
         fh.write(csv_text)
+
+    # Generate histogram.
+    generate_histogram(os.path.join(filtered_istack_dir, "cellinfo.json"),
+                       os.path.join(output_directory, "histogram.png"))
 
 
 def analyse_file(fpath, output_directory, series):
