@@ -46,8 +46,10 @@ $ bash run_docker_container.sh
 [root@048bd4bd961c /]#
 ```
 
-Now you can run the image analysis.
+Now you can run the image analysis on a series within a microscopy file.  The
+below analyses series ``0`` in ``data/raw.lif`` and writes the output to
+``output``.
 
 ```
-[root@048bd4bd961c /]# python scripts/analysis.py --debug data/ output/
+[root@048bd4bd961c /]# python scripts/analyse_series.py data/raw.lif 0 output/
 ```
