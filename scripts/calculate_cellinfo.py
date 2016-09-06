@@ -5,13 +5,14 @@ import json
 import logging
 import argparse
 
-from jicbioimage.core.image import Image3D
 from jicbioimage.core.io import AutoName, AutoWrite, DataManager, FileBackend
 from jicbioimage.segment import SegmentedImage
 
+from utils import ColorImage3D
 from segment import segment
 from cellinfo import cellinfo
 from filter_real_cells import filter_by_property, real_cells
+from create_intensity_stack import create_intensity_stack
 from csv import csv
 from omexml import OmeXml
 
@@ -32,7 +33,7 @@ def get_data_manager(output_directory):
 def create_istack(segmentation, info, output_dir, name):
     istack_fname = name + ".istack"
     istack_output_dir = os.path.join(output_dir, istack_fname)
-    segmentation.view(Image3D).to_directory(istack_output_dir)
+    segmentation.view(ColorImage3D).to_directory(istack_output_dir)
     info_fname = os.path.join(istack_output_dir, "cellinfo.json")
     with open(info_fname, "w") as fh:
         json.dump(info, fh, indent=2)
@@ -78,6 +79,11 @@ def analyse_series(microscopy_collection, input_fname, series, series_name,
     create_istack(filtered_cells, filtered_info, output_directory, "filtered")
     num_cells = len(filtered_cells.identifiers)
     logging.info("Post filter {} cells remain".format(num_cells))
+
+    # Create intensity stack.
+    create_intensity_stack(filtered_cells,
+                           filtered_info,
+                           os.path.join(output_directory, "intensity.stack"))
 
     # Write csv.
     csv_text = csv(input_fname, series_name, series, filtered_info)
