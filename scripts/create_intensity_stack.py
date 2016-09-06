@@ -51,31 +51,28 @@ def write_zslice(zslice, cellinfo, fpath):
         fh.write(canvas.png())
 
 
-def create_intensity_stack(cells, cellinfo):
+def create_intensity_stack(cells, cellinfo, output_dir):
     """Write PNG zslices to stack directory."""
-
-    dpath = AutoName.name(create_intensity_stack)
-    dpath = dpath + ".stack"
-    if not os.path.isdir(dpath):
-        os.mkdir(dpath)
+    if not os.path.isdir(output_dir):
+        os.mkdir(output_dir)
 
     ydim, xdim, zdim = cells.shape
     for zi in range(zdim):
         write_zslice(cells[:, :, zi],
                      cellinfo,
-                     os.path.join(dpath, "z{:02d}.png".format(zi)))
+                     os.path.join(output_dir, "z{:02d}.png".format(zi)))
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input_dir")
+    parser.add_argument("output_dir")
     args = parser.parse_args()
 
     if not os.path.isdir(args.input_dir):
         parser.error("No such dir: " + args.input_dir)
-    AutoName.directory = args.input_dir
 
     cellinfo = json.load(file(os.path.join(args.input_dir, "cellinfo.json")))
     cells = ColorImage3D.from_directory(args.input_dir)
 
-    create_intensity_stack(cells, cellinfo)
+    create_intensity_stack(cells, cellinfo, args.output_dir)
