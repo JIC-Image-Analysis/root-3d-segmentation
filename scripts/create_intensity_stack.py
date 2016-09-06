@@ -16,7 +16,7 @@ from utils import ColorImage3D
 
 def intensity_per_volume(cell_props):
     """Return the intensity per volume for a cell."""
-    return float(cell_props["intensity"]) / cell_props["area"]
+    return float(cell_props["total_intensity"]) / cell_props["voxels"]
 
 
 def min_max_cell_intensity(cellinfo):
@@ -42,7 +42,7 @@ def write_zslice(zslice, cellinfo, fpath):
         cell_intenistity = intensity_per_volume(props)
         color = get_normalised_rgb_from_cell_intensity(cell_intenistity,
                                                        imin, imax)
-        region = zslice == props["identifier"]
+        region = zslice == props["cell_id"]
         if np.sum(region) == 0:
             continue
         canvas.mask_region(region, color)

@@ -12,16 +12,16 @@ def filter_by_property(im3d, cellinfo, filter_func, min_size, max_size):
     new_cellinfo = []
     for props in cellinfo:
         if not filter_func(props, min_size, max_size):
-            im3d[im3d == props["identifier"]] = 0
+            im3d[im3d == props["cell_id"]] = 0
         else:
             new_cellinfo.append(props)
     return im3d, new_cellinfo
 
 
 def real_cells(cell_properties, min_size, max_size):
-    if cell_properties["area"] < min_size:
+    if cell_properties["voxels"] < min_size:
         return False
-    if cell_properties["area"] > max_size:
+    if cell_properties["voxels"] > max_size:
         return False
     return True
 
