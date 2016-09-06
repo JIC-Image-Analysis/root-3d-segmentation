@@ -5,49 +5,52 @@ import os.path
 import argparse
 import json
 
-from jicbioimage.core.io import AutoName
-
 from utils import ColorImage3D
 
 
-def filter_by_property(im3d, cellinfo, filter_func):
+def filter_by_property(im3d, cellinfo, filter_func, min_size, max_size):
     new_cellinfo = []
     for props in cellinfo:
-        if not filter_func(props):
+        if not filter_func(props, min_size, max_size):
             im3d[im3d == props["identifier"]] = 0
         else:
             new_cellinfo.append(props)
-
-    dpath = AutoName.name(filter_by_property)
-    dpath = dpath + ".info.stack"
-    if not os.path.isdir(dpath):
-        os.mkdir(dpath)
-
-    im3d.to_directory(dpath)
-    with open(os.path.join(dpath, "cellinfo.json"), "w") as fh:
-        json.dump(new_cellinfo, fh, indent=2)
-
-    return im3d
+    return im3d, new_cellinfo
 
 
-def real_cells(cell_properties):
-    if cell_properties["area"] < 10000:
+def real_cells(cell_properties, min_size, max_size):
+    if cell_properties["area"] < min_size:
         return False
-    if cell_properties["area"] > 80000:
+    if cell_properties["area"] > max_size:
         return False
     return True
+
+
+def main(input_dir, output_dir, min_size, max_size):
+    cellinfo = json.load(file(os.path.join(input_dir, "cellinfo.json")))
+    cells = ColorImage3D.from_directory(input_dir)
+
+    cells, cellinfo = filter_by_property(cells, cellinfo, real_cells,
+                                         min_size=min_size,
+                                         max_size=max_size)
+
+    cells.to_directory(output_dir)
+    with open(os.path.join(output_dir, "cellinfo.json"), "w") as fh:
+        json.dump(cellinfo, fh, indent=2)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input_dir")
+    parser.add_argument("output_dir")
+    parser.add_argument("--min_size", type=int, default=10000)
+    parser.add_argument("--max_size", type=int, default=80000)
     args = parser.parse_args()
 
     if not os.path.isdir(args.input_dir):
         parser.error("No such dir: " + args.input_dir)
-    AutoName.directory = args.input_dir
 
-    cellinfo = json.load(file(os.path.join(args.input_dir, "cellinfo.json")))
-    cells = ColorImage3D.from_directory(args.input_dir)
+    if not os.path.isdir(args.output_dir):
+        os.mkdir(args.output_dir)
 
-    cells = filter_by_property(cells, cellinfo, real_cells)
+    main(args.input_dir, args.output_dir, args.min_size, args.max_size)
