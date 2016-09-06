@@ -3,7 +3,7 @@ library("ggplot2")
 
 args <- commandArgs(trailingOnly=TRUE)
 data <- fromJSON(args[1])
-data$normalised.intensity <- data$intensity / data$area
+data$normalised.intensity <- data$total_intensity / data$voxels
 
 ggplot(data, aes(normalised.intensity)) +
   geom_histogram(aes(fill=..x..)) +
