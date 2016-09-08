@@ -8,6 +8,7 @@ import argparse
 from jicbioimage.core.io import AutoName, AutoWrite, DataManager, FileBackend
 from jicbioimage.segment import SegmentedImage
 
+from setup_image_data import get_data_manager
 from utils import ColorImage3D
 from segment import segment
 from cellinfo import cellinfo
@@ -20,15 +21,6 @@ from omexml import OmeXml
 __version__ = "0.0.1"
 
 AutoName.prefix_format = "{:03d}_"
-
-
-def get_data_manager(output_directory):
-    """Return FileBackend instance."""
-    backend_dir = os.path.join(output_directory, '.backend')
-    if not os.path.isdir(backend_dir):
-        os.mkdir(backend_dir)
-    backend = FileBackend(backend_dir)
-    return DataManager(backend)
 
 
 def create_istack(segmentation, info, output_dir, name):
@@ -98,11 +90,11 @@ def analyse_series(microscopy_collection, input_fname, series, series_name,
                        os.path.join(output_directory, "histogram.png"))
 
 
-def analyse_file(fpath, output_directory, series):
+def analyse_file(fpath, output_directory, series, backend_directory):
     """Analyse a single file."""
     logging.info("Analysing file: {}".format(fpath))
     logging.info("Series identifier: {}".format(series))
-    data_manager = get_data_manager(output_directory)
+    data_manager = get_data_manager(backend_directory)
     microscopy_collection = data_manager.load(fpath)
     omexml = OmeXml(fpath)
 
@@ -132,6 +124,7 @@ def main():
     # Create the output directory if it does not exist.
     if not os.path.isdir(args.output_dir):
         os.mkdir(args.output_dir)
+    backend_dir = args.output_dir
 
     # Create output directory for input microscopy file.
     fname = os.path.basename(args.input_source)
@@ -162,7 +155,7 @@ def main():
     logging.info("Script version: {}".format(__version__))
 
     # Run the analysis.
-    analyse_file(args.input_source, output_dir, args.series)
+    analyse_file(args.input_source, output_dir, args.series, backend_dir)
 
 
 if __name__ == "__main__":

@@ -31,10 +31,9 @@ def is_directory_processed(output_directory):
     return False
 
 def unpack_series_in_single_file(filename, output_directory):
-    """Unpack the series contained in a particular image file. Return a list of
-    tuples in the form:
+    """Unpack the series contained in a particular image file. Returns
 
-    (image_filename, series_identifier, output_path)
+    backend_dir_path, (image_filename, series_identifier, output_path)
 
     where:
 
@@ -61,7 +60,7 @@ def unpack_series_in_single_file(filename, output_directory):
         if not is_directory_processed(series_output_directory):
             process_list.append((filename, sid, series_output_directory))
 
-    return process_list
+    return output_directory, process_list
 
 def unpack_all_series_in_directory(input_directory, output_directory):
     """Given an input directory, find all of the image files in that directory,
@@ -74,11 +73,11 @@ def unpack_all_series_in_directory(input_directory, output_directory):
 
     for input_filename in all_input_files:
         fq_input_filename = os.path.join(input_directory, input_filename)
-        process_commands = unpack_series_in_single_file(fq_input_filename, 
+        process_commands = unpack_series_in_single_file(fq_input_filename,
                                                         output_directory)
         process_list += process_commands
- 
-    return process_list
+
+    return output_directory, process_list
 
 
 def main():
