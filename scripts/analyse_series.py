@@ -5,7 +5,7 @@ import json
 import logging
 import argparse
 
-from jicbioimage.core.io import AutoName, AutoWrite, DataManager, FileBackend
+from jicbioimage.core.io import AutoName, AutoWrite
 from jicbioimage.segment import SegmentedImage
 
 from setup_image_data import get_data_manager
@@ -27,10 +27,10 @@ def create_istack(segmentation, info, output_dir, name):
     istack_fname = name + ".istack"
     istack_output_dir = os.path.join(output_dir, istack_fname)
     segmentation.view(ColorImage3D).to_directory(istack_output_dir)
-    info_fname = os.path.join(istack_output_dir, "cellinfo.json")
-    with open(info_fname, "w") as fh:
+    info_fpath = os.path.join(istack_output_dir, "cellinfo.json")
+    with open(info_fpath, "w") as fh:
         json.dump(info, fh, indent=2)
-    return istack_output_dir
+    return istack_output_dir, info_fpath
 
 
 def analyse_series(microscopy_collection, input_fname, series, series_name,
@@ -70,8 +70,10 @@ def analyse_series(microscopy_collection, input_fname, series, series_name,
                                                        real_cells,
                                                        min_cell_size,
                                                        max_cell_size)
-    filtered_istack_dir = create_istack(filtered_cells, filtered_info,
-                                        output_directory, "filtered")
+    filtered_istack_dir, filtered_info_fpath = create_istack(filtered_cells,
+                                                             filtered_info,
+                                                             output_directory,
+                                                             "filtered")
     num_cells = len(filtered_cells.identifiers)
     logging.info("Post filter {} cells remain".format(num_cells))
 
@@ -86,8 +88,12 @@ def analyse_series(microscopy_collection, input_fname, series, series_name,
         fh.write(csv_text)
 
     # Generate histogram.
-    generate_histogram(os.path.join(filtered_istack_dir, "cellinfo.json"),
-                       os.path.join(output_directory, "histogram.png"))
+    hist_fpath = os.path.join(output_directory, "histogram.png")
+    return_code = generate_histogram(filtered_info_fpath, hist_fpath)
+    if not int(return_code) == 0:
+        logging.warning("Failed to generate histogram")
+    else:
+        logging.info("Generated histogram: {}".format(hist_fpath))
 
 
 def analyse_file(fpath, output_directory, series, backend_directory):

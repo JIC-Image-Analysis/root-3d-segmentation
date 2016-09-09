@@ -9,7 +9,7 @@ RSCRIPT = os.path.join(HERE, "histogram.R")
 
 def generate_histogram(cellinfo_fpath, output_fpath):
     cmd = "Rscript {} {} {}".format(RSCRIPT, cellinfo_fpath, output_fpath)
-    os.system(cmd)
+    return os.system(cmd)
 
 
 if __name__ == "__main__":
