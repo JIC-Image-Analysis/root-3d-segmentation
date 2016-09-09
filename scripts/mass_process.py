@@ -2,7 +2,7 @@
 
 import argparse
 
-from setup_image_data import unpack_series_in_single_file
+from setup_image_data import unpack_series_in_single_file, unpack_all_series_in_directory
 from analyse_series import analyse_file
 
 def in_memory(input_file, output_directory):
@@ -13,7 +13,7 @@ def in_memory(input_file, output_directory):
 
 
 def bash_script(input_file, output_directory):
-    backend_dir, process_list = unpack_series_in_single_file(input_file, output_directory)
+    backend_dir, process_list = unpack_all_series_in_directory(input_file, output_directory)
     for fpath, series, output_path in process_list:
         cmd = ["python",
                "scripts/analyse_series.py",
