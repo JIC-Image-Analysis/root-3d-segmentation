@@ -18,7 +18,7 @@ from csv import csv
 from histogram import generate_histogram
 from omexml import OmeXml
 
-__version__ = "0.0.1"
+__version__ = "0.1.0"
 
 AutoName.prefix_format = "{:03d}_"
 
