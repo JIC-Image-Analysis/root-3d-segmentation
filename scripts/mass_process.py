@@ -20,7 +20,8 @@ def bash_script(input_file, output_directory):
                fpath,
                str(series),
                output_directory]
-        print(" ".join(cmd))
+        if_fails = ' || echo "{}" >> failed_jobs.log'.format(' '.join(cmd))
+        print(" ".join(cmd) + if_fails)
 
 
 def main():
