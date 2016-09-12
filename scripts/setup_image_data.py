@@ -73,7 +73,7 @@ def unpack_all_series_in_directory(input_directory, output_directory):
 
     for input_filename in all_input_files:
         fq_input_filename = os.path.join(input_directory, input_filename)
-        process_commands = unpack_series_in_single_file(fq_input_filename,
+        _, process_commands = unpack_series_in_single_file(fq_input_filename,
                                                         output_directory)
         process_list += process_commands
 
