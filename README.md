@@ -53,3 +53,26 @@ below analyses series ``0`` in ``data/raw.lif`` and writes the output to
 ```
 [root@048bd4bd961c /]# python scripts/analyse_series.py data/raw.lif 0 output/
 ```
+
+## Mass processing of data
+
+We need to create a bash script for mass processing.
+If running outside of a docker container using a virtual environment
+setup we need to add a line sourcing it.
+
+```
+echo "source env/bin/activate" > mass_process.sh
+```
+
+We can then append all the jobs to the newly created ``mass_process.sh``
+script.
+
+```
+$ python scripts/mass_process.py input_dir ouput_dir bash-script >> mass_process.sh
+```
+
+Finally, we can run the mass processing bash script.
+
+```
+$ bash mass_process.sh
+```
