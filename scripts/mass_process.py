@@ -17,7 +17,7 @@ def bash_script(input_file, output_directory):
     for fpath, series, output_path in process_list:
         cmd = ["python",
                "scripts/analyse_series.py",
-               input_file,
+               fpath,
                str(series),
                output_directory]
         print(" ".join(cmd))
