@@ -76,3 +76,17 @@ Finally, we can run the mass processing bash script.
 ```
 $ bash mass_process.sh
 ```
+
+## Generating histogram from all data
+
+Create master csv file.
+
+```
+$ python scripts/cat_csv_files.py output_dir > data.csv
+```
+
+Create faceted histogram.
+
+```
+$ Rscript scritps/all_histograms.R data.csv histograms.png
+```
