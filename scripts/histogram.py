@@ -7,8 +7,11 @@ HERE = os.path.dirname(os.path.realpath(__file__))
 RSCRIPT = os.path.join(HERE, "histogram.R")
 
 
-def generate_histogram(cellinfo_fpath, output_fpath):
-    cmd = "Rscript {} {} {}".format(RSCRIPT, cellinfo_fpath, output_fpath)
+def generate_histogram(cellinfo_fpath, mean_output_fpath, sum_output_fpath):
+    cmd = "Rscript {} {} {} {}".format(RSCRIPT,
+                                       cellinfo_fpath,
+                                       mean_output_fpath,
+                                       sum_output_fpath)
     return os.system(cmd)
 
 

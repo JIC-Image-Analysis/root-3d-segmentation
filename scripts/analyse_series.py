@@ -94,8 +94,13 @@ def analyse_series(microscopy_collection, input_fname, series, series_name,
         fh.write(csv_text)
 
     # Generate histogram.
-    hist_fpath = os.path.join(output_directory, "histogram.png")
-    return_code = generate_histogram(filtered_info_fpath, hist_fpath)
+    mean_hist_fpath = os.path.join(output_directory,
+                                   "mean_intensity_histogram.png")
+    sum_hist_fpath = os.path.join(output_directory,
+                                  "sum_intensity_histogram.png")
+    return_code = generate_histogram(filtered_info_fpath,
+                                     mean_hist_fpath,
+                                     sum_hist_fpath)
     if not int(return_code) == 0:
         logging.warning("Failed to generate histogram")
     else:

@@ -9,3 +9,8 @@ ggplot(data, aes(mean.intensity)) +
   geom_histogram(aes(fill=..x..)) +
   scale_fill_continuous(low="blue", high="yellow")
 ggsave(args[2])
+
+ggplot(data, aes(total_intensity)) +
+  geom_histogram(aes(fill=..x..)) +
+  scale_fill_continuous(low="blue", high="yellow")
+ggsave(args[3])
