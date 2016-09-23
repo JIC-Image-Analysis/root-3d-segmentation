@@ -1,3 +1,6 @@
+.DS_Store
+failed_jobs.log
+
 *.png
 *.pyc
 
