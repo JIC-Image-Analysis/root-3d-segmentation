@@ -13,7 +13,10 @@ from utils import ColorImage3D
 from segment import segment
 from cellinfo import cellinfo
 from filter_real_cells import filter_by_property, real_cells
-from create_intensity_stack import create_intensity_stack
+from create_intensity_stack import (
+    create_mean_intensity_stack,
+    create_total_intensity_stack,
+)
 from csv import csv
 from histogram import generate_histogram
 from omexml import OmeXml
@@ -77,10 +80,13 @@ def analyse_series(microscopy_collection, input_fname, series, series_name,
     num_cells = len(filtered_cells.identifiers)
     logging.info("Post filter {} cells remain".format(num_cells))
 
-    # Create intensity stack.
-    create_intensity_stack(filtered_cells,
+    # Create intensity stacks.
+    create_mean_intensity_stack(filtered_cells,
                            filtered_info,
-                           os.path.join(output_directory, "intensity.stack"))
+                           os.path.join(output_directory, "mean_intensity.stack"))
+    create_total_intensity_stack(filtered_cells,
+                           filtered_info,
+                           os.path.join(output_directory, "total_intensity.stack"))
 
     # Write csv.
     csv_text = csv(input_fname, series_name, series, filtered_info)
