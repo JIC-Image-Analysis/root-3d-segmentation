@@ -104,7 +104,8 @@ def analyse_series(microscopy_collection, input_fname, series, series_name,
     if not int(return_code) == 0:
         logging.warning("Failed to generate histogram")
     else:
-        logging.info("Generated histogram: {}".format(hist_fpath))
+        logging.info("Generated mean intensity histogram: {}".format(mean_hist_fpath))
+        logging.info("Generated sum intensity histogram: {}".format(sum_hist_fpath))
 
 
 def analyse_file(fpath, output_directory, series, backend_directory):
