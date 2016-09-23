@@ -90,6 +90,25 @@ def filter_cells_outside_mask(im3d, mask):
     return im3d
 
 
+@transformation
+def remove_border_segmentations(im3d):
+    """Remove segments that touch the image border."""
+    ydim, xdim, zdim = im3d.shape
+
+    # Identify any segments that touch the image border.
+    border_seg_ids = set()
+    border_seg_ids.update(set(np.unique(im3d[0, :, :])))
+    border_seg_ids.update(set(np.unique(im3d[:, 0, :])))
+    border_seg_ids.update(set(np.unique(im3d[ydim-1, :, :])))
+    border_seg_ids.update(set(np.unique(im3d[:, xdim-1, :])))
+
+    # Remove those segments.
+    for i in border_seg_ids:
+        im3d[im3d == i] = 0
+
+    return im3d
+
+
 def segment(stack):
     """Segment the stack into 3D regions representing cells."""
     mask = threshold_otsu(stack)
@@ -101,4 +120,5 @@ def segment(stack):
     stack = discrete_gaussian_filter(stack, 2.0)
     stack = morphological_watershed(stack, 0.664)
     stack = filter_cells_outside_mask(stack, mask)
+    stack = remove_border_segmentations(stack)
     return stack
