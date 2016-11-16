@@ -1,13 +1,10 @@
-# root-3d-segmentation
+# README
 
-## Todo
+Scripts to segment roots and calculate intensities per cell.
 
-- Add simple itk to requirements.txt
-- Document how to use scripts/visualiser.py
-- Add requirements file for the visualiser
+For information about the methods see the [methodology](methodology.md).
 
-
-## Introduction
+## Installation notes
 
 This image analysis project has been setup to take advantage of a technology
 known as Docker.
