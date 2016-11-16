@@ -4,7 +4,7 @@ Scripts to segment roots and calculate intensities per cell.
 
 For information about the methods see the [methodology](methodology.md).
 
-## Installation notes
+## Prerequisites
 
 This image analysis project has been setup to take advantage of a technology
 known as Docker.

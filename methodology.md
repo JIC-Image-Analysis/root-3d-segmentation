@@ -45,6 +45,8 @@ the segmentation, and dividing by the total cell volume in voxels. These
 per-cell mean intensities were used to generate histograms using the R
 statistical computing environment (6).
 
+## References
+
 1. Python Software Foundation. Python Language Reference, version 2.7.
    Available at http://www.python.org
 2. Linkert M, Rueden CT, Allan C, Burel J-M, Moore W, Patterson A, Loranger B,
