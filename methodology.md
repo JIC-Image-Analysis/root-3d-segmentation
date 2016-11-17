@@ -49,14 +49,14 @@ statistical computing environment (6).
 
 1. Python Software Foundation. Python Language Reference, version 2.7.
    Available at http://www.python.org
-2. Linkert M, Rueden CT, Allan C, Burel J-M, Moore W, Patterson A, Loranger B,
+2. Olsson TSG, Hartley M. (2016) jicbioimage: a tool for automated and
+   reproducible bioimage analysis. PeerJ 4:e2674
+   https://doi.org/10.7717/peerj.2674
+3. Linkert M, Rueden CT, Allan C, Burel J-M, Moore W, Patterson A, Loranger B,
    Moore J, Neves C, Macdonald D, Tarkowska A, Sticco C, Hill E, Rossner M,
    Eliceiri KW, Swedlow JR. 2010. Metadata matters: access to image data in the
    real world. Journal of Cell Biology 189(5):777-782
    https://doi.org/10.1083/jcb.201004104
-3. Olsson TSG, Hartley M. (2016) jicbioimage: a tool for automated and
-   reproducible bioimage analysis. PeerJ 4:e2674
-   https://doi.org/10.7717/peerj.2674
 4. Lowekamp BC, Chen DT, Ibáñez L, Blezek D. 2013. The design of simpleITK.
    Frontiers in Neuroinformatics 7:45
    http://doi.org/10.3389/fninf.2013.00045
