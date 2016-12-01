@@ -14,7 +14,7 @@ from jicbioimage.transform import (
     remove_small_objects,
 )
 
-from utils import ColorImage3D
+from utils import ColorImage3D, PrettyColorImage3D
 
 
 @transformation
@@ -119,6 +119,8 @@ def segment(stack):
     stack = gradient_magnitude(stack)
     stack = discrete_gaussian_filter(stack, 2.0)
     stack = morphological_watershed(stack, 0.664)
+    identity(stack.view(PrettyColorImage3D))
     stack = filter_cells_outside_mask(stack, mask)
     stack = remove_border_segmentations(stack)
+    identity(stack.view(PrettyColorImage3D))
     return stack

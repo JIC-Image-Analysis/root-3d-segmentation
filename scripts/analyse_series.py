@@ -7,10 +7,11 @@ import argparse
 
 from jicbioimage.core.io import AutoName, AutoWrite
 from jicbioimage.segment import SegmentedImage
+from jicbioimage.core.image import Image3D
 
 from setup_image_data import get_data_manager
 from utils import ColorImage3D
-from segment import segment
+from segment import segment, identity
 from cellinfo import cellinfo
 from filter_real_cells import filter_by_property, real_cells
 from create_intensity_stack import (
@@ -51,6 +52,7 @@ def analyse_series(microscopy_collection, input_fname, series, series_name,
 
     # Segment root into cells.
     stack = microscopy_collection.zstack(s=series, c=1)
+    stack = identity(stack)
     stack = segment(stack)
     segmented_cells = stack.view(SegmentedImage)
     num_cells = len(segmented_cells.identifiers)
@@ -58,6 +60,7 @@ def analyse_series(microscopy_collection, input_fname, series, series_name,
 
     # Calculate cell info and write to disk.
     intensity_stack = microscopy_collection.zstack(s=series, c=0)
+    intensity_stack = identity(intensity_stack)
     info = cellinfo(intensity_stack, segmented_cells)
 
     # Create segmented istack.
