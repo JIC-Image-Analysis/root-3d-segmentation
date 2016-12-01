@@ -1,0 +1,24 @@
+digraph workflow {
+
+  node[shape=rect labelloc=b fontname="helvetica" fontcolor=white]
+
+  composite[image="composite-thumbnail.png"]
+  wall[image="wall-thumbnail.png"]
+  venus[image="venus-thumbnail.png"]
+  mask[image="mask-thumbnail.png"]
+  watershed[image="watershed-thumbnail.png"]
+  cells[image="cells-thumbnail.png"]
+  intensity_per_cell[label="normalised intensity" image="intensity_per_cell-thumbnail.png"]
+  histogram[label="" image="histogram-thumbnail.png"]
+
+  composite -> wall;
+  composite -> venus;
+  wall -> mask;
+  wall -> watershed;
+  watershed -> cells;
+  mask -> cells;
+  cells -> intensity_per_cell;
+  venus -> intensity_per_cell; 
+  intensity_per_cell -> histogram;
+
+}
