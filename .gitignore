@@ -3,7 +3,9 @@ failed_jobs.log
 
 *.png
 *.pyc
-
+data
 data/*
 output/*
 env/*
+old_data
+old_output
